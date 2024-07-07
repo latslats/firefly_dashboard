@@ -68,6 +68,49 @@ def create_expense_pie_chart(df, selected_categories, selected_month):
     fig = px.pie(grouped_df, values='amount', names='category', title=f'Expense Distribution for {selected_month}')
     return fig
 
+
+
+# New function for income vs expenses overview
+def create_overview(df, start_date, end_date):
+    mask = (df['date'].dt.date >= start_date) & (df['date'].dt.date <= end_date)
+    filtered_df = df[mask]
+    
+    total_income = filtered_df[filtered_df['type'] == 'Deposit']['amount'].sum()
+    total_expenses = filtered_df[filtered_df['type'] == 'Withdrawal']['amount'].sum()
+    net_savings = total_income - total_expenses
+    
+    return total_income, total_expenses, net_savings
+
+# New function for time series trend
+def create_time_series(df, start_date, end_date):
+    mask = (df['date'].dt.date >= start_date) & (df['date'].dt.date <= end_date)
+    filtered_df = df[mask]
+    
+    daily_summary = filtered_df.groupby(['date', 'type'])['amount'].sum().unstack(fill_value=0).reset_index()
+    daily_summary['Net'] = daily_summary['Deposit'] - daily_summary['Withdrawal']
+    
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=daily_summary['date'], y=daily_summary['Deposit'], name='Income', line=dict(color='green')))
+    fig.add_trace(go.Scatter(x=daily_summary['date'], y=daily_summary['Withdrawal'], name='Expenses', line=dict(color='red')))
+    fig.add_trace(go.Scatter(x=daily_summary['date'], y=daily_summary['Net'], name='Net', line=dict(color='blue')))
+    
+    fig.update_layout(title='Income vs Expenses Over Time', xaxis_title='Date', yaxis_title='Amount')
+    return fig
+
+
+# Updated function for top N categories
+def get_top_categories(df, category_type, n, start_date, end_date):
+    mask = (df['date'].dt.date >= start_date) & (df['date'].dt.date <= end_date)
+    filtered_df = df[mask]
+    
+    if category_type == 'Income':
+        data = filtered_df[filtered_df['type'] == 'Deposit']
+    else:
+        data = filtered_df[filtered_df['type'] == 'Withdrawal']
+    
+    top_categories = data.groupby('category')['amount'].sum().nlargest(n).reset_index()
+    return top_categories
+
 # Main Streamlit app
 def main():
     st.title('Firefly 3 Finance Dashboard')
@@ -82,11 +125,14 @@ def main():
 
     # Category selection with "Select All" button
     categories = sorted(data['category'].unique())
-    selected_categories = st.sidebar.multiselect('Select Categories', categories, default=categories[:5])
+    
+    if 'selected_categories' not in st.session_state:
+        st.session_state.selected_categories = categories[:5]
     
     if st.sidebar.button('Select All Categories'):
-        selected_categories = categories
-        st.sidebar.write("All categories selected!")
+        st.session_state.selected_categories = categories
+    
+    selected_categories = st.sidebar.multiselect('Select Categories', categories, default=st.session_state.selected_categories)
 
     min_date = data['date'].min().date()
     max_date = data['date'].max().date()
@@ -97,8 +143,21 @@ def main():
     available_months = sorted(data['month'].unique())
     selected_month = st.sidebar.selectbox('Select Month for Expense Pie Chart', available_months, index=len(available_months)-1)
 
+    # Overview section
+    st.header('Financial Overview')
+    total_income, total_expenses, net_savings = create_overview(data, start_date, end_date)
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total Income", f"${total_income:.2f}")
+    col2.metric("Total Expenses", f"${total_expenses:.2f}")
+    col3.metric("Net Savings", f"${net_savings:.2f}")
+
+    # Time series trend
+    st.header('Income vs Expenses Over Time')
+    time_series_chart = create_time_series(data, start_date, end_date)
+    st.plotly_chart(time_series_chart)
+
     if selected_categories:
-        st.header('Income and Expenses Over Time')
+        st.header('Income and Expenses by Category')
         charts = create_bar_charts(data, selected_categories, start_date, end_date)
         st.plotly_chart(charts)
 
@@ -108,7 +167,21 @@ def main():
     else:
         st.warning('Please select at least one category.')
 
-    st.header('Financial Summary')
+    # Top N categories
+    st.header('Top Categories')
+    n = st.slider('Select number of top categories to display', 3, 10, 5)
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader(f'Top {n} Income Sources')
+        top_income = get_top_categories(data, 'Income', n, start_date, end_date)
+        st.dataframe(top_income)
+    with col2:
+        st.subheader(f'Top {n} Expense Categories')
+        top_expenses = get_top_categories(data, 'Expenses', n, start_date, end_date)
+        st.dataframe(top_expenses)
+
+    # Existing summary tables
+    st.header('Detailed Financial Summary')
     summary_data = data[
         data['category'].isin(selected_categories) & 
         (data['date'].dt.date >= start_date) & 
