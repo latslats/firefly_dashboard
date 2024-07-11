@@ -207,12 +207,16 @@ def main():
         st.subheader('Income Summary')
         income_summary = summary_data[summary_data['type'] == 'Deposit'].groupby('category')['amount'].agg(['sum', 'mean', 'count']).round(2)
         income_summary.columns = ['Total Amount', 'Average Amount', 'Number of Transactions']
+        total_income_amount = income_summary['Total Amount'].sum()
+        income_summary['% of Total'] = (income_summary['Total Amount'] / total_income_amount * 100).round(2)
         income_summary = income_summary.sort_values('Total Amount', ascending=False)
         st.dataframe(income_summary)
         
         st.subheader('Expense Summary')
         expense_summary = summary_data[summary_data['type'] == 'Withdrawal'].groupby('category')['amount'].agg(['sum', 'mean', 'count']).round(2)
         expense_summary.columns = ['Total Amount', 'Average Amount', 'Number of Transactions']
+        total_expense_amount = expense_summary['Total Amount'].sum()
+        expense_summary['% of Total'] = (expense_summary['Total Amount'] / total_expense_amount * 100).round(2)
         expense_summary = expense_summary.sort_values('Total Amount', ascending=False)
         st.dataframe(expense_summary)
 
