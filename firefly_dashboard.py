@@ -55,7 +55,7 @@ def create_bar_charts(df, selected_categories, start_date, end_date):
     return fig
 
 # Create pie chart for monthly expenses
-def create_expense_pie_chart(df, selected_categories, start_date, end_date):
+def create_expense_pie_chart(df, selected_categories, start_date, end_date, threshold):
     mask = (
         df['category'].isin(selected_categories) &
         (df['date'].dt.date >= start_date) &
