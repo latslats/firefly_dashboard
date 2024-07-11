@@ -150,7 +150,7 @@ def main():
     if 'selected_categories' not in st.session_state:
         st.session_state.selected_categories = categories[:5]
     
-    if st.sidebar.button('Select All Categories'):
+    if st.sidebar.button('Select All Categories', key='select_all_categories'):
         st.session_state.selected_categories = categories
     
     selected_categories = st.sidebar.multiselect('Select Categories', categories, default=st.session_state.selected_categories)
@@ -180,7 +180,7 @@ def main():
         if 'selected_categories' not in st.session_state:
             st.session_state.selected_categories = categories[:5]
         
-        if st.sidebar.button('Select All Categories'):
+        if st.sidebar.button('Select All Categories', key='select_all_categories_2'):
             st.session_state.selected_categories = categories
         
         selected_categories = st.sidebar.multiselect('Select Categories', categories, default=st.session_state.selected_categories)
