@@ -153,12 +153,12 @@ def main():
     if st.sidebar.button('Select All Categories', key='select_all_categories'):
         st.session_state.selected_categories = categories
     
-    selected_categories = st.sidebar.multiselect('Select Categories', categories, default=st.session_state.selected_categories, key='sidebar_multiselect')
+    selected_categories = st.sidebar.multiselect('Select Categories', categories, default=st.session_state.selected_categories, key='sidebar_multiselect_1')
 
     min_date = data['date'].min().date()
     max_date = data['date'].max().date()
-    start_date = st.sidebar.date_input('Start Date', min_date, min_value=min_date, max_value=max_date, key='start_date')
-    end_date = st.sidebar.date_input('End Date', max_date, min_value=min_date, max_value=max_date, key='end_date')
+    start_date = st.sidebar.date_input('Start Date', min_date, min_value=min_date, max_value=max_date, key='start_date_1')
+    end_date = st.sidebar.date_input('End Date', max_date, min_value=min_date, max_value=max_date, key='end_date_1')
     tab1, tab2 = st.tabs(["Dashboard", "Transaction Details"])
 
     with tab1:
@@ -189,77 +189,6 @@ def main():
         time_series_chart = create_time_series(data, start_date, end_date)
         st.plotly_chart(time_series_chart)
 
-        if selected_categories:
-            st.subheader('Income and Expenses by Category')
-            charts = create_bar_charts(data, selected_categories, start_date, end_date)
-            st.plotly_chart(charts)
-
-            st.subheader('Monthly Expense Distribution')
-            pie_chart = create_expense_pie_chart(data, selected_categories, start_date, end_date)
-            st.plotly_chart(pie_chart)
-            filtered_df = data[
-                data['category'].isin(selected_categories) & 
-                (data['date'].dt.date >= start_date) & 
-                (data['date'].dt.date <= end_date)
-            ]
-
-            # Add download button for filtered data
-            st.download_button(
-                label="Download Filtered Data as CSV",
-                data=filtered_df.to_csv(index=False).encode('utf-8'),
-                file_name='filtered_data.csv',
-                mime='text/csv'
-            )
-            st.warning('Please select at least one category.')
-
-        if selected_categories:
-            st.subheader('Income and Expenses by Category')
-            charts = create_bar_charts(data, selected_categories, start_date, end_date)
-            st.plotly_chart(charts)
-
-            st.subheader('Monthly Expense Distribution')
-            pie_chart = create_expense_pie_chart(data, selected_categories, start_date, end_date)
-            st.plotly_chart(pie_chart)
-
-            filtered_df = data[
-                data['category'].isin(selected_categories) & 
-                (data['date'].dt.date >= start_date) & 
-                (data['date'].dt.date <= end_date)
-            ]
-
-            # Add download button for filtered data
-            st.download_button(
-                label="Download Filtered Data as CSV",
-                data=filtered_df.to_csv(index=False).encode('utf-8'),
-                file_name='filtered_data.csv',
-                mime='text/csv'
-            )
-
-            # Top N transactions
-            st.subheader('Top Transactions')
-            n_transactions = st.slider('Select number of top transactions to display', 3, 20, 10)
-            col1, col2 = st.columns(2)
-            with col1:
-                st.subheader(f'Top {n_transactions} Income Transactions')
-                top_income_transactions = filtered_df[filtered_df['type'] == 'Deposit'].nlargest(n_transactions, 'amount')
-                st.dataframe(top_income_transactions[['date', 'description', 'amount', 'category']])
-            with col2:
-                st.subheader(f'Top {n_transactions} Expense Transactions')
-                top_expense_transactions = filtered_df[filtered_df['type'] == 'Withdrawal'].nlargest(n_transactions, 'amount')
-                st.dataframe(top_expense_transactions[['date', 'description', 'amount', 'category']])
-        else:
-            st.warning('Please select at least one category.')
-        st.subheader('Top Transactions')
-        n_transactions = st.slider('Select number of top transactions to display', 3, 20, 10)
-        col1, col2 = st.columns(2)
-        with col1:
-            st.subheader(f'Top {n_transactions} Income Transactions')
-            top_income_transactions = filtered_df[filtered_df['type'] == 'Deposit'].nlargest(n_transactions, 'amount')
-            st.dataframe(top_income_transactions[['date', 'description', 'amount', 'category']])
-        with col2:
-            st.subheader(f'Top {n_transactions} Expense Transactions')
-            top_expense_transactions = filtered_df[filtered_df['type'] == 'Withdrawal'].nlargest(n_transactions, 'amount')
-            st.dataframe(top_expense_transactions[['date', 'description', 'amount', 'category']])
 
         # Top N categories
         st.subheader('Top Categories')
