@@ -170,7 +170,7 @@ def main():
         col1, col2, col3 = st.columns(3)
         col1.metric("Total Income", f"${total_income:.2f}")
         col2.metric("Total Expenses", f"${total_expenses:.2f}")
-        col3.metric("Net Savings", f"${net_savings:.2f()}")
+        col3.metric("Net Savings", f"${net_savings:.2f}")
 
         st.sidebar.header('Filters')
 
