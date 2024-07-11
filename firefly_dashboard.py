@@ -157,8 +157,8 @@ def main():
 
     min_date = data['date'].min().date()
     max_date = data['date'].max().date()
-    start_date = st.sidebar.date_input('Start Date', min_date, min_value=min_date, max_value=max_date)
-    end_date = st.sidebar.date_input('End Date', max_date, min_value=min_date, max_value=max_date)
+    start_date = st.sidebar.date_input('Start Date', min_date, min_value=min_date, max_value=max_date, key='start_date')
+    end_date = st.sidebar.date_input('End Date', max_date, min_value=min_date, max_value=max_date, key='end_date')
     tab1, tab2 = st.tabs(["Dashboard", "Transaction Details"])
 
     with tab1:
@@ -172,23 +172,6 @@ def main():
         col2.metric("Total Expenses", f"${total_expenses:.2f}")
         col3.metric("Net Savings", f"${net_savings:.2f}")
 
-        st.sidebar.header('Filters')
-
-        # Category selection with "Select All" button
-        categories = sorted(data['category'].unique())
-        
-        if 'selected_categories' not in st.session_state:
-            st.session_state.selected_categories = categories[:5]
-        
-        if st.sidebar.button('Select All Categories', key='select_all_categories_2'):
-            st.session_state.selected_categories = categories
-        
-        selected_categories = st.sidebar.multiselect('Select Categories', categories, default=st.session_state.selected_categories, key='sidebar_multiselect_2')
-
-        min_date = data['date'].min().date()
-        max_date = data['date'].max().date()
-        start_date = st.sidebar.date_input('Start Date', min_date, min_value=min_date, max_value=max_date)
-        end_date = st.sidebar.date_input('End Date', max_date, min_value=min_date, max_value=max_date)
 
         # Month selection for pie chart
         available_months = sorted(data['month'].unique())
