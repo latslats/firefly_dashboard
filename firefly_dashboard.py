@@ -55,17 +55,18 @@ def create_bar_charts(df, selected_categories, start_date, end_date):
     return fig
 
 # Create pie chart for monthly expenses
-def create_expense_pie_chart(df, selected_categories, selected_month):
+def create_expense_pie_chart(df, selected_categories, start_date, end_date):
     mask = (
         df['category'].isin(selected_categories) &
-        (df['month'] == selected_month) &
+        (df['date'].dt.date >= start_date) &
+        (df['date'].dt.date <= end_date) &
         (df['type'] == 'Withdrawal')
     )
     filtered_df = df[mask]
     
     grouped_df = filtered_df.groupby('category')['amount'].sum().reset_index()
     grouped_df = grouped_df.sort_values('amount', ascending=False)
-    fig = px.pie(grouped_df, values='amount', names='category', title=f'Expense Distribution for {selected_month}')
+    fig = px.pie(grouped_df, values='amount', names='category', title=f'Expense Distribution from {start_date} to {end_date}')
     return fig
 
 
@@ -157,7 +158,6 @@ def main():
 
         # Month selection for pie chart
         available_months = sorted(data['month'].unique())
-        selected_month = st.sidebar.selectbox('Select Month for Expense Pie Chart', available_months, index=len(available_months)-1)
 
         # Overview section
         st.subheader('Financial Overview')
@@ -178,7 +178,7 @@ def main():
             st.plotly_chart(charts)
 
             st.subheader('Monthly Expense Distribution')
-            pie_chart = create_expense_pie_chart(data, selected_categories, selected_month)
+            pie_chart = create_expense_pie_chart(data, selected_categories, start_date, end_date)
             st.plotly_chart(pie_chart)
         else:
             st.warning('Please select at least one category.')
