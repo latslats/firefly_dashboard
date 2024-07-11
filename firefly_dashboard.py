@@ -51,7 +51,16 @@ def create_bar_charts(df, selected_categories, start_date, end_date):
     for trace in expense_chart.data:
         fig.add_trace(trace, row=2, col=1)
     
-    fig.update_layout(height=1000, title_text="Income and Expenses per Category per Month")
+    fig.update_layout(
+        height=1000,
+        title_text="Income and Expenses per Category per Month",
+        title_font_size=20,
+        title_x=0.5,
+        legend_title_text='Category',
+        legend_title_font_size=14,
+        legend_font_size=12,
+        margin=dict(l=20, r=20, t=40, b=20)
+    )
     return fig
 
 # Create pie chart for monthly expenses
@@ -138,6 +147,14 @@ def main():
     with tab1:
         st.header('Financial Dashboard')
 
+        # Summary section with key metrics
+        st.subheader('Key Metrics')
+        total_income, total_expenses, net_savings = create_overview(data, start_date, end_date)
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Income", f"${total_income:.2f}")
+        col2.metric("Total Expenses", f"${total_expenses:.2f}")
+        col3.metric("Net Savings", f"${net_savings:.2f()}")
+
         st.sidebar.header('Filters')
 
         # Category selection with "Select All" button
@@ -180,8 +197,27 @@ def main():
             st.subheader('Monthly Expense Distribution')
             pie_chart = create_expense_pie_chart(data, selected_categories, start_date, end_date)
             st.plotly_chart(pie_chart)
-        else:
+            # Add download button for filtered data
+            st.download_button(
+                label="Download Filtered Data as CSV",
+                data=filtered_df.to_csv(index=False).encode('utf-8'),
+                file_name='filtered_data.csv',
+                mime='text/csv'
+            )
             st.warning('Please select at least one category.')
+
+        # Top N transactions
+        st.subheader('Top Transactions')
+        n_transactions = st.slider('Select number of top transactions to display', 3, 20, 10)
+        col1, col2 = st.columns(2)
+        with col1:
+            st.subheader(f'Top {n_transactions} Income Transactions')
+            top_income_transactions = filtered_df[filtered_df['type'] == 'Deposit'].nlargest(n_transactions, 'amount')
+            st.dataframe(top_income_transactions[['date', 'description', 'amount', 'category']])
+        with col2:
+            st.subheader(f'Top {n_transactions} Expense Transactions')
+            top_expense_transactions = filtered_df[filtered_df['type'] == 'Withdrawal'].nlargest(n_transactions, 'amount')
+            st.dataframe(top_expense_transactions[['date', 'description', 'amount', 'category']])
 
         # Top N categories
         st.subheader('Top Categories')
