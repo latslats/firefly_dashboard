@@ -153,7 +153,7 @@ def main():
     if st.sidebar.button('Select All Categories', key='select_all_categories'):
         st.session_state.selected_categories = categories
     
-    selected_categories = st.sidebar.multiselect('Select Categories', categories, default=st.session_state.selected_categories)
+    selected_categories = st.sidebar.multiselect('Select Categories', categories, default=st.session_state.selected_categories, key='sidebar_multiselect')
 
     min_date = data['date'].min().date()
     max_date = data['date'].max().date()
@@ -183,7 +183,7 @@ def main():
         if st.sidebar.button('Select All Categories', key='select_all_categories_2'):
             st.session_state.selected_categories = categories
         
-        selected_categories = st.sidebar.multiselect('Select Categories', categories, default=st.session_state.selected_categories)
+        selected_categories = st.sidebar.multiselect('Select Categories', categories, default=st.session_state.selected_categories, key='sidebar_multiselect_2')
 
         min_date = data['date'].min().date()
         max_date = data['date'].max().date()
