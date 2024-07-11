@@ -66,7 +66,10 @@ def create_expense_pie_chart(df, selected_categories, start_date, end_date, thre
     
     grouped_df = filtered_df.groupby('category')['amount'].sum().reset_index()
     grouped_df = grouped_df.sort_values('amount', ascending=False)
-    fig = px.pie(grouped_df, values='amount', names='category', title=f'Expense Distribution from {start_date} to {end_date}')
+    total_amount = grouped_df['amount'].sum()
+    grouped_df['percentage'] = (grouped_df['amount'] / total_amount) * 100
+    grouped_df = grouped_df[grouped_df['percentage'] >= threshold]
+    fig = px.pie(grouped_df, values='amount', names='category', title=f'Expense Distribution from {start_date} to {end_date}', hover_data=['category'])
     return fig
 
 
@@ -156,7 +159,8 @@ def main():
         start_date = st.sidebar.date_input('Start Date', min_date, min_value=min_date, max_value=max_date)
         end_date = st.sidebar.date_input('End Date', max_date, min_value=min_date, max_value=max_date)
 
-        # Month selection for pie chart
+        # Threshold slider for pie chart
+        threshold = st.sidebar.slider('Minimum Percentage to Show on Pie Chart', 0.0, 5.0, 0.5, 0.5)
         available_months = sorted(data['month'].unique())
 
         # Overview section
@@ -178,7 +182,7 @@ def main():
             st.plotly_chart(charts)
 
             st.subheader('Monthly Expense Distribution')
-            pie_chart = create_expense_pie_chart(data, selected_categories, start_date, end_date)
+            pie_chart = create_expense_pie_chart(data, selected_categories, start_date, end_date, threshold)
             st.plotly_chart(pie_chart)
         else:
             st.warning('Please select at least one category.')
